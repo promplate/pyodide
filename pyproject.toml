@@ -1,0 +1,19 @@
+[project]
+name = "promplate-pyodide"
+version = "0.0.1"
+description = "patches for promplate-core for running in pyodide runtime"
+authors = [{ name = "Muspi Merol", email = "me@promplate.dev" }]
+dependencies = ["promplate>=0.3.3.4,<0.3.4"]
+requires-python = ">=3.10"
+readme = "README.md"
+license = { text = "MIT" }
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm]
+distribution = true
+
+[tool.pdm.dev-dependencies]
+dev = ["pyodide-py>=0.25.0"]

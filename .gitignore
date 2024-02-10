@@ -1,0 +1,10 @@
+__pycache__
+
+*venv
+*pdm*
+
+dist
+
+.vscode
+.fleet
+.idea
