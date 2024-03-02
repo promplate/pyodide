@@ -16,4 +16,15 @@ build-backend = "pdm.backend"
 distribution = true
 
 [tool.pdm.dev-dependencies]
-dev = ["pyodide-py>=0.25.0"]
+dev = ["pyodide-py~=0.25.0", "ruff~=0.3.0"]
+
+[tool.pdm.scripts]
+fmt = "ruff format"
+lint = "ruff check ."
+
+[tool.ruff]
+fix = true
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+select = ["I", "E4", "E7", "E9", "F"]
