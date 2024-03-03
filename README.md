@@ -4,22 +4,18 @@ Run your [`promplate`](https://promplate.dev/) project in the browser with [pyod
 
 ## Usage
 
-If you just want to use its templating staff:
-
 ```py
 from micropip import install  # in pyodide runtime
 await install("promplate-pyodide")
 
-from promplate_pyodide import *
-patch_promplate()
+from promplate_pyodide import patch_all
+patch_all()
 ```
 
-If you also want to use its OpenAI LLM, you should register the `openai` module because it is not compatible with pyodide.
-Note that you can register it as the JavaScript OpenAI SDK because its API is similar to the Python SDK.
+You can register the `openai` module as the JavaScript SDK in the JavaScript scope because the Python SDK v1.x doesn't support pyodide.
 
-```py
-patch_promplate(True)
-```
+It will remove sync APIs of `promplate.llm.openai` because the JavaScript OpenAI SDK is async-only.
 
-This will patch `ensure` method to return a JavaScript array instead of a Python list.
-And it will remove sync APIs of `promplate.llm.openai` because the JavaScript OpenAI SDK is async-only.
+---
+
+Of course you can use OpenAI Python SDK v0.x in pyodide, but it is not recommended.
