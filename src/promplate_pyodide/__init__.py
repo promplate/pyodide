@@ -1,7 +1,12 @@
+from contextlib import suppress
+from inspect import isclass, isfunction
 from pathlib import Path
+from types import FunctionType
+
+from .utils.warn import NotImplementedWarning
 
 
-def patch_promplate(patch_openai=False):
+def patch_promplate():
     import promplate
 
     class Loader(promplate.template.Loader):
@@ -37,22 +42,49 @@ def patch_promplate(patch_openai=False):
     promplate.template.Template = promplate.Template = Template
     promplate.node.Node = promplate.Node = Node
 
-    if patch_openai:
-        from promplate.prompt.chat import ensure as _ensure
+    from promplate.prompt.chat import ensure
 
-        from .utils.proxy import to_js
+    from .utils.proxy import to_js
 
-        def ensure(text_or_list: list[promplate.Message] | str):
-            """This function is patched to return a JS array. So it should not be called from Python."""
-            return to_js(_ensure(text_or_list))
+    def patched_ensure(text_or_list: list[promplate.Message] | str):
+        """This function is patched to return a JS array. So it should not be called from Python."""
+        return to_js(ensure(text_or_list))
 
-        promplate.prompt.chat.ensure = ensure
+    with suppress(ModuleNotFoundError):
+        import promplate.llm.openai as o
 
-        import promplate.llm.openai
+        o.TextComplete = o.TextGenerate = o.ChatComplete = o.ChatGenerate = o.SyncTextOpenAI = o.SyncChatOpenAI = o.v1.TextComplete = o.v1.TextGenerate = o.v1.ChatComplete = o.v1.ChatGenerate = o.v1.SyncTextOpenAI = o.v1.SyncChatOpenAI = NotImplementedWarning  # fmt: off
 
-        promplate.llm.openai.TextComplete = promplate.llm.openai.AsyncTextComplete
-        promplate.llm.openai.TextGenerate = promplate.llm.openai.AsyncTextGenerate
-        promplate.llm.openai.ChatComplete = promplate.llm.openai.AsyncChatComplete
-        promplate.llm.openai.ChatGenerate = promplate.llm.openai.AsyncChatGenerate
-        del promplate.llm.openai.SyncTextOpenAI
-        del promplate.llm.openai.SyncChatOpenAI
+        def replace_ensure(func: FunctionType):
+            from promplate.prompt.template import SafeChainMapContext as ChainMap
+
+            return FunctionType(func.__code__, ChainMap({"ensure": patched_ensure}, func.__globals__), func.__name__, func.__defaults__, func.__closure__)
+
+        for cls in o.v1.__dict__.values():
+            if isclass(cls):
+                for name, func in [*cls.__dict__.items()]:
+                    if isfunction(func):
+                        setattr(cls, name, replace_ensure(func))
+
+
+async def patch_openai(fallback_import_url: str = "https://esm.sh/openai"):
+    from .utils.openai import ensure_openai, translate_openai
+
+    await ensure_openai(fallback_import_url)
+
+    import openai
+
+    openai.Client = openai.AsyncClient = translate_openai()
+
+
+def patch_httpx():
+    from pyodide.code import run_js
+    from pyodide.ffi import register_js_module
+
+    register_js_module("httpx", run_js("({ Client() { return null }, AsyncClient() { return null } })"))
+
+
+async def patch_all():
+    await patch_openai()
+    patch_httpx()
+    patch_promplate()

@@ -1,6 +1,6 @@
 [project]
 name = "promplate-pyodide"
-version = "0.0.1"
+version = "0.0.2"
 description = "patches for promplate-core for running in pyodide runtime"
 authors = [{ name = "Muspi Merol", email = "me@promplate.dev" }]
 dependencies = ["promplate>=0.3.3.4,<0.3.4"]
@@ -16,13 +16,14 @@ build-backend = "pdm.backend"
 distribution = true
 
 [tool.pdm.dev-dependencies]
-dev = ["pyodide-py~=0.25.0", "ruff~=0.3.0"]
+dev = ["pyodide-py~=0.25.0", "ruff~=0.3.0", "openai~=1.13.3"]
 
 [tool.pdm.scripts]
 fmt = "ruff format"
 lint = "ruff check ."
 
 [tool.ruff]
+line-length = 160
 fix = true
 
 [tool.ruff.lint]
