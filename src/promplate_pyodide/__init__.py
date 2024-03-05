@@ -1,4 +1,5 @@
 from contextlib import suppress
+from functools import wraps
 from inspect import isclass, isfunction
 from pathlib import Path
 from types import FunctionType
@@ -42,29 +43,33 @@ def patch_promplate():
     promplate.template.Template = promplate.Template = Template
     promplate.node.Node = promplate.Node = Node
 
-    from promplate.prompt.chat import ensure
-
     from .utils.proxy import to_js
-
-    def patched_ensure(text_or_list: list[promplate.Message] | str):
-        """This function is patched to return a JS array. So it should not be called from Python."""
-        return to_js(ensure(text_or_list))
 
     with suppress(ModuleNotFoundError):
         import promplate.llm.openai as o
 
         o.TextComplete = o.TextGenerate = o.ChatComplete = o.ChatGenerate = o.SyncTextOpenAI = o.SyncChatOpenAI = o.v1.TextComplete = o.v1.TextGenerate = o.v1.ChatComplete = o.v1.ChatGenerate = o.v1.SyncTextOpenAI = o.v1.SyncChatOpenAI = NotImplementedWarning  # fmt: off
 
-        def replace_ensure(func: FunctionType):
+        def patched_ensure(text_or_list: list[promplate.Message] | str):
+            """This function is patched to return a JS array. So it should not be called from Python."""
+            return to_js(o.ensure(text_or_list))
+
+        def patch_function(func: FunctionType):
             from promplate.prompt.template import SafeChainMapContext as ChainMap
 
-            return FunctionType(func.__code__, ChainMap({"ensure": patched_ensure}, func.__globals__), func.__name__, func.__defaults__, func.__closure__)
+            func = FunctionType(func.__code__, ChainMap({"ensure": patched_ensure}, func.__globals__), func.__name__, func.__defaults__, func.__closure__)
+
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                return func(*(to_js(i) for i in args), **{i: to_js(j) for i, j in kwargs.items()})
+
+            return wrapper
 
         for cls in o.v1.__dict__.values():
             if isclass(cls):
                 for name, func in [*cls.__dict__.items()]:
-                    if isfunction(func):
-                        setattr(cls, name, replace_ensure(func))
+                    if name == "__call__" and isfunction(func):
+                        setattr(cls, name, patch_function(func))
 
 
 async def patch_openai(fallback_import_url: str = "https://esm.sh/openai"):
