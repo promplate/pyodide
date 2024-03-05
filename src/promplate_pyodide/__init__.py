@@ -68,7 +68,7 @@ def patch_promplate():
         for cls in o.v1.__dict__.values():
             if isclass(cls):
                 for name, func in [*cls.__dict__.items()]:
-                    if name == "__call__" and isfunction(func):
+                    if isfunction(func) and func.__name__ == "__call__":
                         setattr(cls, name, patch_function(func))
 
 
