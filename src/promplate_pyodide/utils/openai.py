@@ -16,6 +16,8 @@ async def ensure_openai(fallback_import_url: str):
     with suppress(ModuleNotFoundError):
         import openai.version
 
+        return
+
     openai = await run_js(get_openai_js_script.replace("openai", fallback_import_url))  # noqa
 
     register_js_module("openai", openai)
