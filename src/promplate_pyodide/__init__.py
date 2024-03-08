@@ -43,6 +43,8 @@ def patch_promplate():
     promplate.template.Template = promplate.Template = Template
     promplate.node.Node = promplate.Node = Node
 
+    patch_class(promplate.node.Interruptable)
+
     from .utils.proxy import to_js
 
     with suppress(ModuleNotFoundError):
@@ -93,3 +95,19 @@ async def patch_all():
     await patch_openai()
     patch_httpx()
     patch_promplate()
+
+
+def patch_params(func: FunctionType):
+    from .utils.proxy import to_py
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*(to_py(i) for i in args), **{i: to_py(j) for i, j in kwargs.items()})
+
+    return wrapper
+
+
+def patch_class(cls: type):
+    for name, func in cls.__dict__.items():
+        if isfunction(func):
+            setattr(cls, name, patch_params(func))
