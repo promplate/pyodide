@@ -2,7 +2,9 @@ from contextlib import suppress
 from typing import cast
 
 from pyodide.code import run_js
-from pyodide.ffi import JsCallable, register_js_module, to_js
+from pyodide.ffi import JsCallable, register_js_module
+
+from .proxy import to_js
 
 get_openai_js_script = """(
   async () => {
