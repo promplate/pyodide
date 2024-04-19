@@ -54,7 +54,7 @@ def patch_promplate():
 
         def patched_ensure(text_or_list: list[promplate.Message] | str):
             """This function is patched to return a JS array. So it should not be called from Python."""
-            return to_js(o.ensure(text_or_list))
+            return to_js(promplate.prompt.chat.ensure(text_or_list))
 
         def patch_function(func: FunctionType):
             from promplate.prompt.template import SafeChainMapContext as ChainMap
