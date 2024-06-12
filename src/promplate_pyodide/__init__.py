@@ -23,15 +23,27 @@ def patch_promplate():
 
             return obj
 
-        @classmethod
-        def fetch(cls, url: str, **kwargs):
-            from pyodide.http import open_url
+        from .utils.stack_switching import stack_switching_supported
 
-            res = open_url(cls._join_url(url))
-            obj = cls(res.read())
-            obj.name = Path(url).stem
+        if stack_switching_supported():
 
-            return obj
+            @classmethod
+            def fetch(cls, url: str, **kwargs):  # type: ignore
+                from pyodide.ffi import run_sync  # type: ignore
+
+                return run_sync(cls.afetch(url, **kwargs))
+
+        else:
+
+            @classmethod
+            def fetch(cls, url: str, **kwargs):
+                from pyodide.http import open_url
+
+                res = open_url(cls._join_url(url))
+                obj = cls(res.read())
+                obj.name = Path(url).stem
+
+                return obj
 
     class Node(Loader, promplate.Node):
         """patched for making HTTP requests in pyodide runtime"""
