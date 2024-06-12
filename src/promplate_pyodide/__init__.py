@@ -17,7 +17,7 @@ def patch_promplate():
         async def afetch(cls, url: str, **kwargs):
             from pyodide.http import pyfetch
 
-            res = await pyfetch(cls._join_url(url))
+            res = await pyfetch(cls._join_url(url), **kwargs)
             obj = cls(await res.text())
             obj.name = Path(url).stem
 
