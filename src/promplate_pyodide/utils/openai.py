@@ -1,4 +1,5 @@
 from contextlib import suppress
+from os import getenv
 from typing import cast
 
 from pyodide.code import run_js
@@ -41,9 +42,9 @@ def translate_openai():
         **_,
     ):
         return js_openai_class.new(
-            apiKey=api_key or "",
-            organization=organization,
-            baseURL=base_url,
+            apiKey=api_key or getenv("OPENAI_API_KEY", ""),
+            organization=organization or getenv("OPENAI_ORG_ID"),
+            baseURL=base_url or getenv("OPENAI_BASE_URL"),
             timeout=timeout,
             maxRetries=max_retries,
             defaultHeaders=to_js(default_headers),
