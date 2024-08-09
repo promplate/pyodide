@@ -4,7 +4,7 @@ from inspect import isclass, isfunction
 from pathlib import Path
 from types import FunctionType
 
-from .utils.warn import NotImplementedWarning
+from .utils.stack_switching import stack_switching_supported
 
 
 def patch_promplate():
@@ -62,8 +62,6 @@ def patch_promplate():
     with suppress(ModuleNotFoundError):
         import promplate.llm.openai as o
 
-        o.TextComplete = o.TextGenerate = o.ChatComplete = o.ChatGenerate = o.SyncTextOpenAI = o.SyncChatOpenAI = o.v1.TextComplete = o.v1.TextGenerate = o.v1.ChatComplete = o.v1.ChatGenerate = o.v1.SyncTextOpenAI = o.v1.SyncChatOpenAI = NotImplementedWarning  # fmt: off
-
         def patched_ensure(text_or_list: list[promplate.Message] | str):
             """This function is patched to return a JS array. So it should not be called from Python."""
             return to_js(promplate.prompt.chat.ensure(text_or_list))
@@ -84,6 +82,16 @@ def patch_promplate():
                 for name, func in [*cls.__dict__.items()]:
                     if isfunction(func) and func.__name__ == "__call__":
                         setattr(cls, name, patch_function(func))
+
+        if stack_switching_supported():
+            from .utils.openai.sync import patch_sync_apis
+
+            patch_sync_apis()
+
+        else:
+            from .utils.warn import NotImplementedWarning
+
+            o.TextComplete = o.TextGenerate = o.ChatComplete = o.ChatGenerate = o.SyncTextOpenAI = o.SyncChatOpenAI = o.v1.TextComplete = o.v1.TextGenerate = o.v1.ChatComplete = o.v1.ChatGenerate = o.v1.SyncTextOpenAI = o.v1.SyncChatOpenAI = NotImplementedWarning  # fmt: off
 
 
 async def patch_openai(fallback_import_url: str = "https://esm.sh/openai"):
