@@ -21,3 +21,24 @@ jobs:
       - name: Ruff lint check
         run: |
           ruff check --output-format=github
+  publish:
+    needs: ruff
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      - name: Build package
+        run: |
+          pip install pdm --disable-pip-version-check
+          pdm build
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+          print-hash: true
+          verbose: true
