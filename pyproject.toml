@@ -16,7 +16,7 @@ build-backend = "pdm.backend"
 distribution = true
 
 [tool.pdm.dev-dependencies]
-dev = ["pyodide-py~=0.25.0", "ruff~=0.3.0", "openai~=1.13.3"]
+dev = ["pyodide-py>=0.25.0", "ruff~=0.3.0", "openai~=1.13.3"]
 
 [tool.pdm.scripts]
 fmt = "ruff format"

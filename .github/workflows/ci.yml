@@ -1,9 +1,9 @@
-name: ruff checks
+name: CI
 
-on: ["push", "pull_request"]
+on: ["push", "pull_request", "workflow_dispatch"]
 
 jobs:
-  ruff:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,8 +21,11 @@ jobs:
       - name: Ruff lint check
         run: |
           ruff check --output-format=github
+      - name: Pyright type check
+        run: |
+          npx pyright
   publish:
-    needs: ruff
+    needs: check
     runs-on: ubuntu-latest
     permissions:
       id-token: write
