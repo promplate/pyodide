@@ -23,8 +23,6 @@ def patch_promplate():
 
             return obj
 
-        from .utils.stack_switching import stack_switching_supported
-
         if stack_switching_supported():
 
             @classmethod
