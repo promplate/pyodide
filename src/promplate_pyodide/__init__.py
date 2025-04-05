@@ -23,18 +23,14 @@ def patch_promplate():
 
             return obj
 
-        if stack_switching_supported():
-
-            @classmethod
-            def fetch(cls, url: str, **kwargs):  # type: ignore
+        @classmethod
+        def fetch(cls, url: str, **kwargs):
+            if stack_switching_supported():
                 from pyodide.ffi import run_sync  # type: ignore
 
                 return run_sync(cls.afetch(url, **kwargs))
 
-        else:
-
-            @classmethod
-            def fetch(cls, url: str, **kwargs):
+            else:
                 from pyodide.http import open_url
 
                 res = open_url(cls._join_url(url))
