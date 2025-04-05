@@ -18,4 +18,4 @@ class WarnPrinter:
         return self
 
 
-NotImplementedWarning = WarnPrinter("This feature does not support pyodide runtime!")
+sync_api_warning = WarnPrinter("Synchronous APIs are not available in pyodide unless stack switching is supported.")

@@ -77,15 +77,9 @@ def patch_promplate():
                     if isfunction(func) and func.__name__ == "__call__":
                         setattr(cls, name, patch_function(func))
 
-        if stack_switching_supported():
-            from .utils.openai.sync import patch_sync_apis
+        from .utils.openai.sync import patch_sync_apis
 
-            patch_sync_apis()
-
-        else:
-            from .utils.warn import NotImplementedWarning
-
-            o.TextComplete = o.TextGenerate = o.ChatComplete = o.ChatGenerate = o.SyncTextOpenAI = o.SyncChatOpenAI = o.v1.TextComplete = o.v1.TextGenerate = o.v1.ChatComplete = o.v1.ChatGenerate = o.v1.SyncTextOpenAI = o.v1.SyncChatOpenAI = NotImplementedWarning  # fmt: off
+        patch_sync_apis()
 
 
 async def patch_openai(fallback_import_url: str = "https://esm.sh/openai"):

@@ -1,6 +1,9 @@
 from inspect import isawaitable
 from typing import AsyncIterable, Awaitable, Callable, Iterable, overload
 
+from .stack_switching import stack_switching_supported
+from .warn import sync_api_warning
+
 STOP_ITERATION = object()
 
 
@@ -29,6 +32,8 @@ def to_sync(func):  # type: ignore
 
     @wraps(func)
     def wrapper(*args, **kwargs):
+        if not stack_switching_supported():
+            return sync_api_warning
         res = func(*args, **kwargs)
         return run_sync(res) if isawaitable(res) else syncify(res)
 
