@@ -15,7 +15,7 @@ build-backend = "pdm.backend"
 [tool.pdm]
 distribution = true
 
-[tool.pdm.dev-dependencies]
+[dependency-groups]
 dev = ["pyodide-py>=0.25.0", "ruff~=0.3.0", "openai~=1.13.3"]
 
 [tool.pdm.scripts]
