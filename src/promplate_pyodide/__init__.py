@@ -4,16 +4,18 @@ from inspect import isclass, isfunction
 from pathlib import Path
 from types import FunctionType
 
+from .utils.check import is_fake_httpx, is_fake_openai
 from .utils.stack_switching import stack_switching_supported
 
 
 def patch_promplate():
     import promplate
 
-    class Loader(promplate.template.Loader):
-        """making HTTP requests in pyodide runtime"""
+    if is_fake_httpx():
+        from promplate.prompt.template import Loader
 
         @classmethod
+        @wraps(Loader.afetch)
         async def afetch(cls, url: str, **kwargs):
             from pyodide.http import pyfetch
 
@@ -24,6 +26,7 @@ def patch_promplate():
             return obj
 
         @classmethod
+        @wraps(Loader.fetch)
         def fetch(cls, url: str, **kwargs):
             if stack_switching_supported():
                 from pyodide.ffi import run_sync  # type: ignore
@@ -39,15 +42,11 @@ def patch_promplate():
 
                 return obj
 
-    class Node(Loader, promplate.Node):
-        """patched for making HTTP requests in pyodide runtime"""
+        Loader.afetch = afetch  # type: ignore
+        Loader.fetch = fetch  # type: ignore
 
-    class Template(Loader, promplate.Template):
-        """patched for making HTTP requests in pyodide runtime"""
-
-    promplate.template.Loader = Loader
-    promplate.template.Template = promplate.Template = Template
-    promplate.node.Node = promplate.Node = Node
+    if not is_fake_openai():
+        return
 
     patch_class(promplate.node.Interruptable)
 
@@ -87,12 +86,20 @@ async def patch_openai(fallback_import_url: str = "https://esm.sh/openai"):
 
     await ensure_openai(fallback_import_url)
 
+    if not is_fake_openai():
+        return
+
     import openai
 
     openai.Client = openai.AsyncClient = translate_openai()
 
 
 def patch_httpx():
+    with suppress(ModuleNotFoundError):
+        import httpx  # noqa: F401
+
+        return
+
     from pyodide.code import run_js
     from pyodide.ffi import register_js_module
 
