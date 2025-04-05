@@ -1,10 +1,17 @@
+# type: ignore
+
 from ..sync import to_sync
 
 
 def patch_sync_apis():
-    from promplate.llm import openai as o
+    from promplate.llm.openai import v0, v1
 
-    o.SyncTextOpenAI.complete = o.TextComplete.__call__ = to_sync(o.AsyncTextComplete.__call__)  # type: ignore
-    o.SyncTextOpenAI.generate = o.TextGenerate.__call__ = to_sync(o.AsyncTextGenerate.__call__)  # type: ignore
-    o.SyncChatOpenAI.complete = o.ChatComplete.__call__ = to_sync(o.AsyncChatComplete.__call__)  # type: ignore
-    o.SyncChatOpenAI.generate = o.ChatGenerate.__call__ = to_sync(o.AsyncChatGenerate.__call__)  # type: ignore
+    v1.SyncTextOpenAI.complete = v1.TextComplete.__call__ = to_sync(v1.AsyncTextComplete.__call__)
+    v1.SyncTextOpenAI.generate = v1.TextGenerate.__call__ = to_sync(v1.AsyncTextGenerate.__call__)
+    v1.SyncChatOpenAI.complete = v1.ChatComplete.__call__ = to_sync(v1.AsyncChatComplete.__call__)
+    v1.SyncChatOpenAI.generate = v1.ChatGenerate.__call__ = to_sync(v1.AsyncChatGenerate.__call__)
+
+    v0.TextComplete.__call__ = to_sync(v0.AsyncTextComplete.__call__)
+    v0.TextGenerate.__call__ = to_sync(v0.AsyncTextGenerate.__call__)
+    v0.ChatComplete.__call__ = to_sync(v0.AsyncChatComplete.__call__)
+    v0.ChatGenerate.__call__ = to_sync(v0.AsyncChatGenerate.__call__)
