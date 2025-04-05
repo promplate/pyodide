@@ -1,6 +1,6 @@
 [project]
 name = "promplate-pyodide"
-version = "0.0.3.5"
+version = "0.0.4"
 description = "patches for promplate-core for running in pyodide runtime"
 authors = [{ name = "Muspi Merol", email = "me@promplate.dev" }]
 dependencies = ["promplate>=0.3.3.4,<0.4"]

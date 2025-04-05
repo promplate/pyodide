@@ -95,15 +95,9 @@ async def patch_openai(fallback_import_url: str = "https://esm.sh/openai"):
 
 
 def patch_httpx():
-    with suppress(ModuleNotFoundError):
-        import httpx  # noqa: F401
+    import promplate.llm.openai.v1 as o
 
-        return
-
-    from pyodide.code import run_js
-    from pyodide.ffi import register_js_module
-
-    register_js_module("httpx", run_js("({ Client() { return null }, AsyncClient() { return null } })"))
+    o._get_client = o._get_aclient = lambda: None  # type: ignore
 
 
 async def patch_all():

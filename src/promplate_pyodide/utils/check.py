@@ -8,6 +8,9 @@ def is_fake_openai():
 
 
 def is_fake_httpx():
-    import httpx
-
-    return isinstance(httpx, JsProxy)
+    try:
+        import httpx
+    except ModuleNotFoundError:
+        return True
+    else:
+        return isinstance(httpx, JsProxy)
